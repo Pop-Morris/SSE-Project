@@ -1,4 +1,5 @@
 import { getStoreInfo } from '@/lib/bigcommerce';
+import Link from 'next/link';
 
 export default async function Home() {
   let store: any = null;
@@ -39,10 +40,13 @@ export default async function Home() {
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+            <Link 
+              href="/workflows/create"
+              className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+            >
               <h3 className="font-bold text-black mb-2">Create Workflow</h3>
               <p className="text-sm text-gray-600">Set up a new automation workflow</p>
-            </div>
+            </Link>
             <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
               <h3 className="font-bold text-black mb-2">View Workflows</h3>
               <p className="text-sm text-gray-600">Manage your existing workflows</p>
