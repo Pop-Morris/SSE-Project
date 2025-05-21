@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Ignore SQLite database
+prisma/*.db
+
+# Add this line to ignore generated Prisma client files
+src/generated/prisma/
