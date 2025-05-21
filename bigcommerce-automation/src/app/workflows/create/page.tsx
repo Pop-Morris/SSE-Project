@@ -13,21 +13,28 @@ export default function CreateWorkflow() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement workflow creation
-    console.log({
-      name: workflowName,
-      trigger: {
-        event: triggerEvent,
-        condition: {
-          type: conditionType,
-          value: parseFloat(thresholdAmount)
-        }
-      },
-      action: {
-        type: actionType,
-        content: actionType === 'add_note' ? actionNote : undefined
-      }
+    const res = await fetch('/api/workflows', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: workflowName,
+        triggerEvent,
+        conditionType,
+        threshold: parseFloat(thresholdAmount),
+        actionType,
+        actionValue: actionType === 'add_note' ? actionNote : '',
+      }),
     });
+    if (res.ok) {
+      // Optionally reset form or show success
+      setWorkflowName('');
+      setThresholdAmount('');
+      setActionNote('');
+      // You could also show a success message or redirect
+    } else {
+      // Handle error (show a message, etc.)
+      alert('Failed to create workflow');
+    }
   };
 
   return (
