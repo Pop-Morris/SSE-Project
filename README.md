@@ -13,7 +13,7 @@ A zapier-styled automation tool
 
 1. **Clone and Install Dependencies**
    ```bash
-   git clone [repository-url]
+   git clone https://github.com/Pop-Morris/SSE-Project.git
    cd bigcommerce-automation
    npm install
    ```
