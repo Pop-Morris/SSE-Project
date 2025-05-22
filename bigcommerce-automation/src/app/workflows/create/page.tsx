@@ -5,11 +5,43 @@ import { useState } from 'react';
 
 export default function CreateWorkflow() {
   const [workflowName, setWorkflowName] = useState('');
+  const [workflowCategory, setWorkflowCategory] = useState('order');
   const [triggerEvent, setTriggerEvent] = useState('new_order');
   const [conditionType, setConditionType] = useState('value_above');
   const [thresholdAmount, setThresholdAmount] = useState('');
   const [actionType, setActionType] = useState('add_note');
   const [actionNote, setActionNote] = useState('');
+  const [storeCreditAmount, setStoreCreditAmount] = useState('');
+
+  // Define available triggers by category
+  const triggersByCategory = {
+    order: [
+      { value: 'new_order', label: 'a new order' }
+    ],
+    customer: [
+      { value: 'customer_created', label: 'a new customer' }
+    ]
+  };
+
+  // Define available actions by category
+  const actionsByCategory = {
+    order: [
+      { value: 'add_note', label: 'add internal note' }
+    ],
+    customer: [
+      { value: 'add_store_credit', label: 'add store credit' }
+    ]
+  };
+
+  // Define available conditions by category
+  const conditionsByCategory = {
+    order: [
+      { value: 'value_above', label: 'valued above' }
+    ],
+    customer: [
+      { value: 'always', label: 'created' }
+    ]
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,11 +50,13 @@ export default function CreateWorkflow() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: workflowName,
+        category: workflowCategory,
         triggerEvent,
         conditionType,
         threshold: parseFloat(thresholdAmount),
         actionType,
-        actionValue: actionType === 'add_note' ? actionNote : '',
+        actionValue: actionType === 'add_note' ? actionNote : 
+                    actionType === 'add_store_credit' ? storeCreditAmount : '',
       }),
     });
     if (res.ok) {
@@ -30,11 +64,21 @@ export default function CreateWorkflow() {
       setWorkflowName('');
       setThresholdAmount('');
       setActionNote('');
+      setStoreCreditAmount('');
       // You could also show a success message or redirect
     } else {
       // Handle error (show a message, etc.)
       alert('Failed to create workflow');
     }
+  };
+
+  // Reset trigger and action when category changes
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newCategory = e.target.value;
+    setWorkflowCategory(newCategory);
+    setTriggerEvent(triggersByCategory[newCategory as keyof typeof triggersByCategory][0].value);
+    setActionType(actionsByCategory[newCategory as keyof typeof actionsByCategory][0].value);
+    setConditionType(conditionsByCategory[newCategory as keyof typeof conditionsByCategory][0].value);
   };
 
   return (
@@ -71,6 +115,22 @@ export default function CreateWorkflow() {
               />
             </div>
 
+            {/* Workflow Category */}
+            <div>
+              <label htmlFor="workflowCategory" className="block text-sm font-medium text-gray-700 mb-1">
+                Workflow Category
+              </label>
+              <select
+                id="workflowCategory"
+                value={workflowCategory}
+                onChange={handleCategoryChange}
+                className="mt-1 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 text-black"
+              >
+                <option value="order">Order Workflows</option>
+                <option value="customer">Customer Workflows</option>
+              </select>
+            </div>
+
             {/* Workflow Rule */}
             <div className="bg-gray-50 p-6 rounded-lg flex flex-wrap gap-x-4 gap-y-2 items-center">
               <span className="text-gray-700 font-medium">If</span>
@@ -80,8 +140,11 @@ export default function CreateWorkflow() {
                 onChange={(e) => setTriggerEvent(e.target.value)}
                 className="rounded-md border border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 text-black px-2 py-1"
               >
-                <option value="new_order">a new order</option>
-                {/* More trigger options will be added here */}
+                {triggersByCategory[workflowCategory as keyof typeof triggersByCategory].map(trigger => (
+                  <option key={trigger.value} value={trigger.value}>
+                    {trigger.label}
+                  </option>
+                ))}
               </select>
 
               <span className="text-gray-700 font-medium">is</span>
@@ -92,21 +155,26 @@ export default function CreateWorkflow() {
                 onChange={(e) => setConditionType(e.target.value)}
                 className="rounded-md border border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 text-black px-2 py-1"
               >
-                <option value="value_above">valued above</option>
-                {/* More condition types will be added here */}
+                {conditionsByCategory[workflowCategory as keyof typeof conditionsByCategory].map(condition => (
+                  <option key={condition.value} value={condition.value}>
+                    {condition.label}
+                  </option>
+                ))}
               </select>
 
-              {/* Threshold Amount Input */}
-              <input
-                type="number"
-                value={thresholdAmount}
-                onChange={(e) => setThresholdAmount(e.target.value)}
-                className="rounded-md border border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 w-32 text-black px-2 py-1"
-                placeholder="499"
-                min="0"
-                step="0.01"
-                required
-              />
+              {/* Threshold Amount Input - only show for value_above condition */}
+              {conditionType === 'value_above' && (
+                <input
+                  type="number"
+                  value={thresholdAmount}
+                  onChange={(e) => setThresholdAmount(e.target.value)}
+                  className="rounded-md border border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 w-32 text-black px-2 py-1"
+                  placeholder="499"
+                  min="0"
+                  step="0.01"
+                  required
+                />
+              )}
 
               <span className="text-gray-700 font-medium">then</span>
 
@@ -116,11 +184,14 @@ export default function CreateWorkflow() {
                 onChange={(e) => setActionType(e.target.value)}
                 className="rounded-md border border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 text-black px-2 py-1"
               >
-                <option value="add_note">add internal note</option>
-                {/* More action types can be added here */}
+                {actionsByCategory[workflowCategory as keyof typeof actionsByCategory].map(action => (
+                  <option key={action.value} value={action.value}>
+                    {action.label}
+                  </option>
+                ))}
               </select>
 
-              {/* Action Value Input (only for add_note) */}
+              {/* Action Value Input - conditional based on action type */}
               {actionType === 'add_note' && (
                 <input
                   type="text"
@@ -128,6 +199,18 @@ export default function CreateWorkflow() {
                   onChange={(e) => setActionNote(e.target.value)}
                   className="rounded-md border border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 flex-1 text-black px-2 py-1 min-w-[150px]"
                   placeholder="VIP Customer"
+                  required
+                />
+              )}
+              {actionType === 'add_store_credit' && (
+                <input
+                  type="number"
+                  value={storeCreditAmount}
+                  onChange={(e) => setStoreCreditAmount(e.target.value)}
+                  className="rounded-md border border-gray-300 bg-white shadow-sm focus:border-blue-500 focus:ring-blue-500 flex-1 text-black px-2 py-1 min-w-[150px]"
+                  placeholder="10.00"
+                  min="0"
+                  step="0.01"
                   required
                 />
               )}
