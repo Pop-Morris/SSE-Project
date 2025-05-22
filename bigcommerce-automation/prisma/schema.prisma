@@ -14,6 +14,7 @@ datasource db {
 model Workflow {
   id            Int      @id @default(autoincrement())
   name          String
+  category      String   
   triggerEvent  String   
   conditionType String   
   threshold     Float    

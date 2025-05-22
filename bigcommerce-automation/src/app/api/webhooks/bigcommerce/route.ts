@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { OrderService } from '@/services/orderService';
+import { StoreCreditService } from '@/services/storeCreditService';
 
 export async function POST(request: Request) {
   console.log('=== Webhook Received ===');
@@ -70,6 +71,42 @@ export async function POST(request: Request) {
           console.log(`Updated order ${orderId} with note: ${workflow.actionValue}`);
         } else {
           console.log(`Workflow ${workflow.id} condition not met: ${orderTotal} <= ${workflow.threshold}`);
+        }
+      }
+    }
+    // Process customer created webhook
+    else if (payload.scope === 'store/customer/*') {
+      console.log('Processing customer webhook');
+      const customerId = payload.data.id;
+      const storeCreditService = new StoreCreditService();
+      
+      // Get all workflows that trigger on customer creation
+      const workflows = await prisma.workflow.findMany({
+        where: {
+          triggerEvent: 'customer_created'
+        }
+      });
+
+      console.log(`Found ${workflows.length} matching workflows`);
+
+      // Process each workflow
+      for (const workflow of workflows) {
+        console.log(`Processing workflow ${workflow.id}:`, {
+          actionType: workflow.actionType,
+          actionValue: workflow.actionValue
+        });
+        
+        // Handle store credit action
+        if (workflow.actionType === 'add_store_credit') {
+          const amount = parseFloat(workflow.actionValue);
+          if (!isNaN(amount) && amount > 0) {
+            await storeCreditService.addStoreCredit(
+              customerId,
+              amount,
+              'Welcome store credit'
+            );
+            console.log(`Added ${amount} store credit to customer ${customerId}`);
+          }
         }
       }
     } else {
