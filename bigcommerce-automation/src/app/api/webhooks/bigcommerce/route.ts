@@ -75,9 +75,24 @@ export async function POST(request: Request) {
       }
     }
     // Process customer created webhook
-    else if (payload.scope === 'store/customer/*') {
-      console.log('Processing customer webhook');
-      const customerId = payload.data.id;
+    else if (payload.scope === 'store/customer/created') {
+      console.log('Processing customer created webhook');
+      
+      // Extract customer data from the webhook payload
+      const customerData = payload.data;
+      if (!customerData || !customerData.id) {
+        console.error('Invalid customer data in webhook payload:', customerData);
+        return NextResponse.json({ error: 'Invalid customer data' }, { status: 400 });
+      }
+
+      const customerId = customerData.id;
+      console.log('Processing webhook for customer:', {
+        id: customerId,
+        email: customerData.email,
+        firstName: customerData.first_name,
+        lastName: customerData.last_name
+      });
+
       const storeCreditService = new StoreCreditService();
       
       // Get all workflows that trigger on customer creation
@@ -87,7 +102,7 @@ export async function POST(request: Request) {
         }
       });
 
-      console.log(`Found ${workflows.length} matching workflows`);
+      console.log(`Found ${workflows.length} matching workflows for customer ${customerId}`);
 
       // Process each workflow
       for (const workflow of workflows) {
@@ -99,14 +114,36 @@ export async function POST(request: Request) {
         // Handle store credit action
         if (workflow.actionType === 'add_store_credit') {
           const amount = parseFloat(workflow.actionValue);
-          if (!isNaN(amount) && amount > 0) {
-            await storeCreditService.addStoreCredit(
-              customerId,
-              amount,
-              'Welcome store credit'
-            );
-            console.log(`Added ${amount} store credit to customer ${customerId}`);
+          if (isNaN(amount)) {
+            console.error(`Invalid store credit amount in workflow ${workflow.id}: ${workflow.actionValue}`);
+            continue;
           }
+          
+          if (amount <= 0) {
+            console.log(`Skipping workflow ${workflow.id}: store credit amount must be positive`);
+            continue;
+          }
+
+          try {
+            // Get current store credit balance
+            const currentBalance = await storeCreditService.getStoreCreditBalance(customerId);
+            console.log(`Current store credit balance for customer ${customerId}: ${currentBalance}`);
+
+            // Update store credit
+            const result = await storeCreditService.updateStoreCredit(
+              customerId,
+              amount
+            );
+            console.log(`Successfully updated store credit for customer ${customerId}:`, {
+              previousBalance: currentBalance,
+              newAmount: amount,
+              result
+            });
+          } catch (error) {
+            console.error(`Failed to update store credit for customer ${customerId}:`, error);
+          }
+        } else {
+          console.log(`Skipping workflow ${workflow.id}: unsupported action type ${workflow.actionType}`);
         }
       }
     } else {

@@ -11,32 +11,28 @@ export class StoreCreditService {
     this.client = new BigCommerceClient(this.storeHash, this.accessToken);
   }
 
-  async addStoreCredit(customerId: number, amount: number, description: string): Promise<any> {
+  async updateStoreCredit(customerId: number, amount: number): Promise<any> {
     try {
-      const storeCreditData = {
-        amount: amount,
-        description: description,
-        type: 'credit'
+      const payload = {
+        store_credit: amount
       };
 
-      const response = await this.client.post(
-        `/v2/customers/${customerId}/store_credit`,
-        storeCreditData
+      const response = await this.client.put(
+        `/v2/customers/${customerId}`,
+        payload
       );
 
       return response.data;
     } catch (error) {
-      console.error('Error adding store credit:', error);
+      console.error('Error updating store credit:', error);
       throw error;
     }
   }
 
   async getStoreCreditBalance(customerId: number): Promise<number> {
     try {
-      const response = await this.client.get(
-        `/v2/customers/${customerId}/store_credit`
-      );
-      return response.data.amount || 0;
+      const response = await this.client.get(`/v2/customers/${customerId}`);
+      return response.data.store_credit || 0;
     } catch (error) {
       console.error('Error getting store credit balance:', error);
       throw error;
