@@ -41,9 +41,10 @@ export async function POST(request: NextRequest) {
     const workflow = await prisma.workflow.create({
       data: {
         name,
+        category: triggerEvent === 'customer_created' ? 'customer' : 'order',
         triggerEvent,
         conditionType,
-        threshold,
+        threshold: triggerEvent === 'customer_created' ? 0 : threshold,
         actionType,
         actionValue,
         webhookId: webhook.data.id,
