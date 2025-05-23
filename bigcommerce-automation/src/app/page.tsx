@@ -54,10 +54,13 @@ export default async function Home() {
               <h3 className="font-bold text-black mb-2">View Workflows</h3>
               <p className="text-sm text-gray-600">Manage your existing workflows</p>
             </Link>
-            <div className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+            <Link
+              href="/monitor"
+              className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+            >
               <h3 className="font-bold text-black mb-2">Activity Log</h3>
               <p className="text-sm text-gray-600">Monitor workflow executions</p>
-            </div>
+            </Link>
           </div>
 
           {/* Getting Started */}
