@@ -69,6 +69,15 @@ export async function POST(request: Request) {
           // Update the order with the internal note
           await orderService.updateOrderNote(orderId, workflow.actionValue);
           console.log(`Updated order ${orderId} with note: ${workflow.actionValue}`);
+          // Log activity for successful execution
+          await prisma.activityLog.create({
+            data: {
+              workflowId: workflow.id,
+              status: 'success',
+              message: `Order note added to order ${orderId}`,
+              details: JSON.stringify({ orderId, note: workflow.actionValue }),
+            }
+          });
         } else {
           console.log(`Workflow ${workflow.id} condition not met: ${orderTotal} <= ${workflow.threshold}`);
         }
@@ -138,6 +147,15 @@ export async function POST(request: Request) {
               previousBalance: currentBalance,
               newAmount: amount,
               result
+            });
+            // Log activity for successful execution
+            await prisma.activityLog.create({
+              data: {
+                workflowId: workflow.id,
+                status: 'success',
+                message: `Store credit updated for customer ${customerId}`,
+                details: JSON.stringify({ customerId, previousBalance: currentBalance, newAmount: amount }),
+              }
             });
           } catch (error) {
             console.error(`Failed to update store credit for customer ${customerId}:`, error);
