@@ -37,11 +37,18 @@ A zapier-styled automation tool
 
    Create a `.env.local` file with your BigCommerce credentials:
    ```
+   BigCommerce API Credentials
    BIGCOMMERCE_STORE_HASH=your_store_hash
    BIGCOMMERCE_ACCESS_TOKEN=your_access_token
-   BIGCOMMERCE_CLIENT_ID=your_client_id
-   BIGCOMMERCE_CLIENT_SECRET=your_client_secret
-   NEXT_PUBLIC_WEBHOOK_URL=your_ngrok_url
+   BIGCOMMERCE_CLIENT_ID=keep_blank
+   BIGCOMMERCE_CLIENT_SECRET=keep_blank
+ 
+
+   Webhook Configuration,
+   NEXT_PUBLIC_WEBHOOK_URL=http://localhost:3000/
+
+   NGROK Tunnel URL,
+   NEXT_PUBLIC_WEBHOOK_URL={your_ngrok_tunnel_url_(https)}
    ```
 
 4. **Database Setup**
