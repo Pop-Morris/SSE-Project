@@ -4,7 +4,7 @@ A zapier-styled automation tool
 # Local Development Setup
 
 ## Prerequisites
-- Node.js (latest LTS version)
+- Node.js (v20.18.1 or later)
 - npm or yarn
 - A BigCommerce store with API credentials
 - ngrok (for webhook testing)
@@ -14,6 +14,7 @@ A zapier-styled automation tool
 1. **Clone and Install Dependencies**
    ```bash
    git clone https://github.com/Pop-Morris/SSE-Project.git
+   cd SSE-Project
    cd bigcommerce-automation
    npm install
    ```
@@ -28,6 +29,7 @@ A zapier-styled automation tool
      ```bash
      ngrok config add-authtoken your_auth_token
      ```
+   - This command updates the authtoken property in your ngrok configuration file - allowing you to start your local server
 
 3. **Environment Setup**
    Create a `.env` file in the root directory with:
