@@ -115,9 +115,16 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete the workflow from the database
-    await prisma.workflow.delete({
-      where: { id: parseInt(id) }
-    });
+    await prisma.$transaction([
+      // First delete all associated activity logs
+      prisma.activityLog.deleteMany({
+        where: { workflowId: parseInt(id) }
+      }),
+      // Then delete the workflow
+      prisma.workflow.delete({
+        where: { id: parseInt(id) }
+      })
+    ]);
 
     return NextResponse.json(
       { message: 'Workflow and associated webhook deleted successfully' },
